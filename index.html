@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+        <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Enseñanzas</title>
+    
+    <!-- Meta tags PWA -->
+    <meta name="theme-color" content="#4a6fa5">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/calendar.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/calendar.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Registros de Enseñanzas">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -324,6 +334,40 @@
         margin: 20px 0; /* Añade 20px de margen arriba y abajo */
         padding-top: 20px; /* Espacio adicional arriba si lo prefieres */
     }
+
+            /* Nuevos estilos para el botón PWA */
+        .pwa-install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .pwa-install-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .pwa-install-btn i {
+            font-size: 20px;
+        }
+        
+        /* Ocultar botón en dispositivos iOS o cuando ya está instalado */
+        .pwa-install-btn.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -511,7 +555,120 @@
         </div>
     </div>
 
+    <button id="pwa-install-btn" class="pwa-install-btn hidden" title="Instalar aplicación">
+        <i class="fas fa-download"></i>
+    </button>
+
     <script>
+
+        // ===== CÓDIGO PWA =====
+        // Registro del Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // Verificar si ya hay un service worker registrado para evitar duplicados
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    // Si no hay registros previos, registrar uno nuevo
+                    if (registrations.length === 0) {
+                        navigator.serviceWorker.register('/sw.js')
+                            .then(function(registration) {
+                                console.log('ServiceWorker registrado con éxito:', registration.scope);
+                            })
+                            .catch(function(error) {
+                                console.log('Error al registrar ServiceWorker:', error);
+                            });
+                    } else {
+                        console.log('ServiceWorker ya registrado:', registrations[0].scope);
+                    }
+                });
+            });
+        }
+
+        // Lógica para el botón de instalación PWA
+        let deferredPrompt;
+        const installButton = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevenir que el mini-infobar aparezca en mobile
+            e.preventDefault();
+            // Guardar el evento para que pueda ser activado después
+            deferredPrompt = e;
+            // Mostrar el botón de instalación
+            installButton.classList.remove('hidden');
+            
+            // Ocultar el botón después de 10 segundos
+            setTimeout(() => {
+                installButton.classList.add('hidden');
+            }, 10000);
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            // Mostrar el prompt de instalación
+            deferredPrompt.prompt();
+            
+            // Esperar a que el usuario responda al prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            // Limpiar el prompt guardado ya que no puede ser reutilizado
+            deferredPrompt = null;
+            
+            // Ocultar el botón de instalación
+            installButton.classList.add('hidden');
+            
+            // Opcional: enviar analytics sobre la decisión de instalación
+            console.log(`User response to the install prompt: ${outcome}`);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            // Ocultar el botón de instalación
+            installButton.classList.add('hidden');
+            // Limpiar el prompt guardado
+            deferredPrompt = null;
+            console.log('PWA was installed');
+            
+            // Mostrar mensaje de confirmación
+            Swal.fire({
+                icon: 'success',
+                title: 'Aplicación instalada',
+                text: 'La aplicación se ha instalado correctamente en tu dispositivo.',
+                confirmButtonColor: '#4361ee'
+            });
+        });
+
+        // Detectar si la aplicación ya está instalada
+        window.addEventListener('load', () => {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            if (isStandalone || window.navigator.standalone) {
+                installButton.classList.add('hidden');
+            }
+            
+            // Detectar si es iOS (que tiene un comportamiento diferente)
+            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIos) {
+                // En iOS, mostramos instrucciones diferentes
+                installButton.classList.remove('hidden');
+                installButton.title = "Agregar a pantalla de inicio";
+                
+                installButton.addEventListener('click', () => {
+                    Swal.fire({
+                        title: 'Instalar aplicación',
+                        html: `
+                            <p>Para instalar esta aplicación en tu iPhone:</p>
+                            <ol style="text-align: left; padding-left: 20px;">
+                                <li>Toca el botón Compartir <i class="fas fa-share-square"></i></li>
+                                <li>Desplázate hacia abajo y selecciona "Agregar a Pantalla de Inicio"</li>
+                                <li>Toca "Agregar" en la esquina superior derecha</li>
+                            </ol>
+                        `,
+                        icon: 'info',
+                        confirmButtonColor: '#4361ee',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+            }
+        });
+        // ===== FIN CÓDIGO PWA =====
         // Configuración de Google Sheets
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6LKTje15hy1R6YfGZtbC2kf3y3lc-gAXer6uHaLVcr9VMV3iBiRPtsgO1paxo9210/exec'; // Reemplaza con tu URL de Apps Script
         
