@@ -368,6 +368,32 @@
         .pwa-install-btn.hidden {
             display: none;
         }
+
+        /* Estilos responsivos para dispositivos móviles */
+        @media (max-width: 768px) {
+            .nav-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-button {
+                width: 100%;
+            }
+        }
+
+        /* Para orientación landscape en móviles */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .nav-buttons {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .nav-button {
+                width: auto;
+                flex: 1;
+                min-width: 120px;
+            }
+        }
     </style>
 </head>
 <body>
