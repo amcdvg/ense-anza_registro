@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-        <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Enseñanzas</title>
     
@@ -379,6 +379,32 @@
             .nav-button {
                 width: 100%;
             }
+            
+            .month-week-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-body, .edit-section {
+                padding: 20px 15px;
+            }
+            
+            .day-section {
+                padding: 12px;
+            }
+            
+            .form-header {
+                padding: 20px 15px;
+            }
+            
+            .form-header h1 {
+                font-size: 24px;
+            }
+            
+            .header-image {
+                width: 120px;
+                height: 120px;
+            }
         }
 
         /* Para orientación landscape en móviles */
@@ -392,6 +418,57 @@
                 width: auto;
                 flex: 1;
                 min-width: 120px;
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 10px 0;
+            }
+            
+            .month-week-selector {
+                flex-direction: row;
+            }
+            
+            .form-body, .edit-section {
+                padding: 15px;
+            }
+            
+            .day-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            .day-section h3 {
+                grid-column: 1 / -1;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* Para tablets y pantallas más grandes en orientación vertical */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 90%;
+            }
+            
+            .nav-button {
+                padding: 10px 20px;
+                font-size: 15px;
             }
         }
     </style>
